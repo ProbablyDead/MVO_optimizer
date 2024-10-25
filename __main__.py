@@ -1,4 +1,4 @@
-from mvo_optimizer.MVO_optimizer import MVO_optimizer
+from MVO_optimizer import MVO_optimizer
 from benchmarks import func_sqr
 
 
