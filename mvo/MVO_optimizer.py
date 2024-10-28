@@ -7,62 +7,62 @@ from sklearn.preprocessing import normalize
 class MVO_optimizer:
     def __init__(self,
                  func,
-                 universes,
-                 max_time=10,
-                 lower_bound=None,
-                 upper_bound=None,
+                 dim,
+                 lower_bound,
+                 upper_bound,
+                 N=50,
+                 max_time=1000,
                  is_minimization: bool = True,
                  wep_min=0.2,
                  wep_max=1.,
                  p=6,
+                 visualization=True
                  ) -> None:
         self.func = func
-        self.universes = np.array(universes)
-        self.dim = self.universes.ndim
-        self.N = len(self.universes)
+        self.dim = dim
+        self.N = N
         self.is_minimization = is_minimization
         self.max_time = max_time
         self.wep_min = wep_min
         self.wep_max = wep_max
         self.p = p
+        self.visualization = visualization
 
-        if not lower_bound:
-            self.lower_bound = self.universes.min(axis=0)
-        else:
-            self.lower_bound = lower_bound \
-                if isinstance(lower_bound, list) else [lower_bound]*self.dim
+        self.lower_bound = lower_bound \
+            if isinstance(lower_bound, list) else [lower_bound]*self.dim
 
-        if not upper_bound:
-            self.upper_bound = self.universes.max(axis=0)
-        else:
-            self.upper_bound = upper_bound \
-                if isinstance(upper_bound, list) else [upper_bound]*self.dim
+        self.upper_bound = upper_bound \
+            if isinstance(upper_bound, list) else [upper_bound]*self.dim
 
     def __norm(self, array):
-        array = array.reshape(1, -1)
-        # Enforce dtype float
-        if array.dtype != "float":
-            array = np.asarray(array, dtype=float)
-
-        # if statement to enforce dtype float
-        B = normalize(array)
-        B = np.reshape(B, -1)
-        return B
+        # Reshape and enforce dtype float
+        array = np.asarray(array, dtype=float).reshape(1, -1)
+        # Normalize and reshape back
+        return normalize(array).ravel()
 
     def __roulette_wheel_selection(self, array):
-        p = random()
-        for i, v in enumerate(array):
-            if v > p:
-                return i
-        return -1
+        cumulative_probabilities = np.cumsum(array)
+        idx = np.searchsorted(cumulative_probabilities, random())
+        return min(idx, self.N-1)
 
     def optimize(self):
+        universes = np.zeros((self.N, self.dim))
+        for i in range(self.dim):
+            universes[:, i] = np.random.uniform(
+                self.lower_bound[i], self.upper_bound[i], self.N)
+
         time = 1
         best_universe = [0.]*self.dim
-        best_universe_inflation = float(
-            "inf") * 1 if self.is_minimization else -1
+        best_universe_inflation = \
+            float("inf") if self.is_minimization else -float("inf")
 
-        while time <= self.max_time:
+        rng = range(self.max_time)
+
+        if self.visualization:
+            import tqdm
+            rng = tqdm.tqdm(rng)
+
+        for time in rng:
             # Wormhole existence probability
             WEP = self.wep_min + time * \
                 ((self.wep_max - self.wep_min) / self.max_time)
@@ -71,21 +71,20 @@ class MVO_optimizer:
                        math.pow(self.max_time, 1 / self.p))
 
             # Clip values in universes to bounds
-            self.universes = np.clip(
-                self.universes, self.lower_bound, self.upper_bound)
+            universes = np.clip(
+                universes, self.lower_bound, self.upper_bound)
 
-            # Sort universes by inflation rates
-            sorted_universes = sorted(self.universes, key=self.func)
+            inflations = np.apply_along_axis(self.func, 1, universes)
+            sorted_indices = np.argsort(inflations)
+            if not self.is_minimization:
+                sorted_indices = sorted_indices[::-1]
+            sorted_universes = universes[sorted_indices]
+            sorted_inflations = inflations[sorted_indices]
 
-            sorted_inflations = np.array(
-                list(map(self.func, sorted_universes)))
-
-            index = 0 if self.is_minimization else -1
-
-            if self.is_minimization and sorted_inflations[index] < best_universe_inflation \
-                    or not self.is_minimization and sorted_inflations[index] > best_universe_inflation:
-                best_universe = np.copy(sorted_universes[index])
-                best_universe_inflation = sorted_inflations[index]
+            if self.is_minimization and sorted_inflations[0] < best_universe_inflation \
+                    or not self.is_minimization and sorted_inflations[0] > best_universe_inflation:
+                best_universe = np.copy(sorted_universes[0])
+                best_universe_inflation = sorted_inflations[0]
 
             normilized_sorted_inflations = np.copy(
                 self.__norm(sorted_inflations))
@@ -98,7 +97,7 @@ class MVO_optimizer:
                     if r1 < normilized_sorted_inflations[i]:
                         white_hole_index = self.__roulette_wheel_selection(
                             normilized_sorted_inflations)
-                        self.universes[black_hole_index, j] \
+                        universes[black_hole_index, j] \
                             = sorted_universes[white_hole_index][j]
 
                     # Exploitation
@@ -107,10 +106,8 @@ class MVO_optimizer:
                                  self.lower_bound[j]) * random()
                                 + self.lower_bound[j]) * TDR
                         if random() < 0.5:
-                            self.universes[i, j] = best_universe[j] + rand
+                            universes[i, j] = best_universe[j] + rand
                         else:
-                            self.universes[i, j] = best_universe[j] - rand
-
-            time += 1
+                            universes[i, j] = best_universe[j] - rand
 
         return best_universe.tolist(), float(best_universe_inflation)
