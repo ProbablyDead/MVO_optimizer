@@ -11,18 +11,16 @@ def main():
     ), key=lambda x: int(x[0][1:]))
 
     for func in functions:
-        start_time = time()
         func = func[1]
         function_name, lb, up, dim = benchmarks.getFunctionDetails(
             func.__name__)
 
-        optimizer = MVO_optimizer(
-            func, dim, lb, up, visualization=False, max_time=100000
-        )
+        start_time = time()
+        optimizer = MVO_optimizer(func, dim, lb, up)
 
         best_solution, best_score = optimizer.optimize()
         time_s = time() - start_time
-        print(f'{function_name=}\t{best_score=}\t{time_s=}')
+        print(f'{function_name=}\t{best_score=}\t{time_s=}\n{best_solution=}')
 
 
 if __name__ == "__main__":

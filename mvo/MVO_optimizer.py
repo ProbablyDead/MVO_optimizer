@@ -41,7 +41,7 @@ class MVO_optimizer:
         return normalize(array).ravel()
 
     def __roulette_wheel_selection(self, array):
-        cumulative_probabilities = np.cumsum(array)
+        cumulative_probabilities = np.cumsum(array/np.sum(array))
         idx = np.searchsorted(cumulative_probabilities, random())
         return min(idx, self.N-1)
 
@@ -78,8 +78,8 @@ class MVO_optimizer:
             sorted_indices = np.argsort(inflations)
             if not self.is_minimization:
                 sorted_indices = sorted_indices[::-1]
-            sorted_universes = universes[sorted_indices]
-            sorted_inflations = inflations[sorted_indices]
+            sorted_universes = np.copy(universes[sorted_indices])
+            sorted_inflations = np.copy(inflations[sorted_indices])
 
             if self.is_minimization and sorted_inflations[0] < best_universe_inflation \
                     or not self.is_minimization and sorted_inflations[0] > best_universe_inflation:
@@ -92,9 +92,8 @@ class MVO_optimizer:
             for i in range(self.N):
                 black_hole_index = i
                 for j in range(self.dim):
-                    r1 = random()
                     # Exploration
-                    if r1 < normilized_sorted_inflations[i]:
+                    if random() < normilized_sorted_inflations[i]:
                         white_hole_index = self.__roulette_wheel_selection(
                             normilized_sorted_inflations)
                         universes[black_hole_index, j] \
