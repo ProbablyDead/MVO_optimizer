@@ -1,4 +1,3 @@
-import math
 from random import random
 import numpy as np
 from sklearn.preprocessing import normalize
@@ -12,31 +11,29 @@ class MVO_optimizer:
                  dim,
                  lower_bound,
                  upper_bound,
-                 precision=0,
                  N=50,
                  max_time=1000,
-                 is_minimization: bool = True,
+                 is_minimization=True,
                  wep_min=0.2,
                  wep_max=1.,
                  p=6,
                  visualization=True
                  ) -> None:
-        self.func = func
         self.dim = dim
-        self.precision = precision,
         self.N = N
         self.is_minimization = is_minimization
         self.max_time = max_time
-        self.wep_min = wep_min
-        self.wep_max = wep_max
-        self.p = p
+        Universe.set_parameters(
+            f=func,
+            dim=dim,
+            lb=lower_bound,
+            ub=upper_bound,
+            max_time=max_time,
+            wep_min=wep_min,
+            wep_max=wep_max,
+            p=p,
+        )
         self.visualization = visualization
-
-        self.lower_bound = lower_bound \
-            if isinstance(lower_bound, list) else [lower_bound]*self.dim
-
-        self.upper_bound = upper_bound \
-            if isinstance(upper_bound, list) else [upper_bound]*self.dim
 
     def __norm(self, array):
         # Reshape and enforce dtype float
@@ -50,16 +47,9 @@ class MVO_optimizer:
         return min(idx, self.N-1)
 
     def optimize(self):
-        Universe.set_parameters(f=self.func, dim=self.dim, lb=0, ub=0)
-
-        best_universe = Universe()
+        best_universe = Universe.create_empty_universe()
         best_universe_inflation = \
             float("inf") if self.is_minimization else -float("inf")
-
-        Universe.set_parameters(
-            lb=self.lower_bound,
-            ub=self.upper_bound
-        )
 
         universes = [Universe() for _ in range(self.N)]
 
@@ -72,12 +62,8 @@ class MVO_optimizer:
             rng = tqdm.tqdm(rng)
 
         for time in rng:
-            # Wormhole existence probability
-            WEP = self.wep_min + time * \
-                ((self.wep_max - self.wep_min) / self.max_time)
-            # Traveling distance rate
-            TDR = 1 - (math.pow(time, 1 / self.p) /
-                       math.pow(self.max_time, 1 / self.p))
+            WEP = Universe.get_WEP(time)
+            TDR = Universe.get_TDR(time)
 
             inflations = np.array([universe.get_inflation_rate()
                                    for universe in universes])
@@ -110,11 +96,9 @@ class MVO_optimizer:
                             universes[black_hole_index], j)
                     # Exploitation
                     if random() < WEP:
-                        rand = ((self.upper_bound[j] -
-                                 self.lower_bound[j]) * random()
-                                + self.lower_bound[j]) * TDR
+                        rand_value = Universe.get_random_value(j) * TDR
                         best_universe.send(universes[i], j,
-                                           delta=rand *
+                                           delta=rand_value *
                                            (1 if random() < 0.5 else -1))
 
         return best_universe.get_array().tolist(), float(best_universe_inflation)
