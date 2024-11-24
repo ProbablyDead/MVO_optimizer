@@ -1,36 +1,53 @@
 from MVO_optimizer import MVO_optimizer
 import benchmarks
-import inspect
 from time import time
 
 
 def main():
-    functions = sorted(list(
-        filter(lambda x: x[0].startswith("F"), inspect.getmembers(
-            benchmarks, inspect.isfunction))
-    ), key=lambda x: int(x[0][1:]))
+    # import inspect
+    # functions = [f for _, f in sorted(list(
+    #     filter(lambda x: x[0].startswith("F"), inspect.getmembers(
+    #         benchmarks, inspect.isfunction))
+    # ), key=lambda x: int(x[0][1:]))]
 
-    num_of_runs = 30
+    functions = [benchmarks.TCSD]
+
+    num_of_runs = 10
+    max_time = 50000
+    N = 100
+    is_minimization = True
 
     for func in functions:
-        func = func[1]
         function_name, lb, up, dim = benchmarks.getFunctionDetails(
             func.__name__)
+
+        print(f"{function_name=}\n{num_of_runs=}\t{max_time=}\t{N=}")
 
         start_time = time()
 
         ave_result = 0
+        best_solution = []
+        best_score = None
         for i in range(num_of_runs):
             optimizer = MVO_optimizer(
-                func, dim, lb, up, max_time=750, N=25, visualization=True)
+                func, dim, lb, up, max_time=max_time, N=N, visualization=False,
+                is_minimization=is_minimization)
 
-            best_solution, best_score = optimizer.optimize()
+            solution, score = optimizer.optimize()
 
-            ave_result += best_score
+            print(f"{i+1}) {score=}")
 
-        time_s = (time() - start_time)/num_of_runs
+            if not best_score or (score < best_score if is_minimization
+                                  else score > best_score):
+                best_score = score
+                best_solution = solution
+
+            ave_result += score
+
+        ave_time_s = (time() - start_time)/num_of_runs
         ave_result /= num_of_runs
-        print(f'{function_name=}\t{ave_result=:.6f}\t{time_s=:.2f}')
+        print(f'{ave_result=:.6f}\t{ave_time_s=:.2f}')
+        print(f'{best_solution=}: {best_score=}')
 
 
 if __name__ == "__main__":

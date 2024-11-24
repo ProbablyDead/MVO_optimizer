@@ -1,6 +1,8 @@
 import math
 import numpy
 
+inf = float(numpy.finfo(numpy.float64).max)
+
 
 def prod(it):
     p = 1
@@ -12,6 +14,38 @@ def prod(it):
 def Ufun(x, a, k, m):
     y = k * ((x - a) ** m) * (x > a) + k * ((-x - a) ** m) * (x < (-a))
     return y
+
+
+def TCSD(x):
+    d_w, D, n = x
+
+    # Objective function
+    f_X = (n + 2) * D * d_w**2
+
+    g1 = 1 - (D**3*n)/(71785*d_w**4)
+    g2 = (4*D**2 - d_w*D)/(12566*(D*d_w**3-d_w**4)) + 1/(5108*d_w**2) - 1
+    g3 = 1 - (140.45*d_w)/(D**2*n)
+    g4 = (D + d_w)/1.5 - 1
+
+    return f_X if g1 <= 0 and g2 <= 0 and g3 <= 0 and g4 <= 0 else inf
+
+
+def AJM(x):
+    x1, x2, x3 = x
+
+    rho_a = 2.48e-6
+    rho_w = 2.7e-6
+    delta_cw = 1.5
+    H_dw = 1150
+    zeta = 1.6
+    R_a_max = 2
+
+    f_X = 1.0436*(10**(-6)) * zeta * \
+        (rho_w/((delta_cw**2)*(H_dw**1.5)*(rho_a**0.5))) * \
+        x1*(x3**3)
+
+    g = 1 - (25.82/R_a_max)*((rho_a/H_dw)**0.5)*x2*x3
+    return f_X if g >= 0 else -inf
 
 
 def F1(x):
@@ -332,6 +366,9 @@ def F23(L):
 def getFunctionDetails(a):
     # [name, lb, ub, dim]
     param = {
+        "TCSD": ["Tension/compression spring design problem", [0.05, 0.25, 2.], [2., 1.3, 15.], 3],
+        "AJM": ["Optimization of Abrasive Jet machining process parameters",
+                [0.0000167, 0.005, 15000], [0.0005, 0.075, 400000], 3],
         "F1": ["F1", -100, 100, 30],
         "F2": ["F2", -10, 10, 30],
         "F3": ["F3", -100, 100, 30],

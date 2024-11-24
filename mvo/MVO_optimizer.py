@@ -2,6 +2,8 @@ import math
 from random import random
 import numpy as np
 from sklearn.preprocessing import normalize
+from copy import deepcopy
+from Universe import Universe
 
 
 class MVO_optimizer:
@@ -10,6 +12,7 @@ class MVO_optimizer:
                  dim,
                  lower_bound,
                  upper_bound,
+                 precision=0,
                  N=50,
                  max_time=1000,
                  is_minimization: bool = True,
@@ -20,6 +23,7 @@ class MVO_optimizer:
                  ) -> None:
         self.func = func
         self.dim = dim
+        self.precision = precision,
         self.N = N
         self.is_minimization = is_minimization
         self.max_time = max_time
@@ -46,15 +50,20 @@ class MVO_optimizer:
         return min(idx, self.N-1)
 
     def optimize(self):
-        universes = np.zeros((self.N, self.dim))
-        for i in range(self.dim):
-            universes[:, i] = np.random.uniform(
-                self.lower_bound[i], self.upper_bound[i], self.N)
+        Universe.set_parameters(f=self.func, dim=self.dim, lb=0, ub=0)
 
-        time = 1
-        best_universe = [0.]*self.dim
+        best_universe = Universe()
         best_universe_inflation = \
             float("inf") if self.is_minimization else -float("inf")
+
+        Universe.set_parameters(
+            lb=self.lower_bound,
+            ub=self.upper_bound
+        )
+
+        universes = [Universe() for _ in range(self.N)]
+
+        time = 1
 
         rng = range(self.max_time)
 
@@ -70,20 +79,20 @@ class MVO_optimizer:
             TDR = 1 - (math.pow(time, 1 / self.p) /
                        math.pow(self.max_time, 1 / self.p))
 
-            # Clip values in universes to bounds
-            universes = np.clip(
-                universes, self.lower_bound, self.upper_bound)
+            inflations = np.array([universe.get_inflation_rate()
+                                   for universe in universes])
 
-            inflations = np.apply_along_axis(self.func, 1, universes)
             sorted_indices = np.argsort(inflations)
             if not self.is_minimization:
                 sorted_indices = sorted_indices[::-1]
-            sorted_universes = np.copy(universes[sorted_indices])
+            sorted_universes = [deepcopy(universes[i]) for i in sorted_indices]
             sorted_inflations = np.copy(inflations[sorted_indices])
 
-            if self.is_minimization and sorted_inflations[0] < best_universe_inflation \
-                    or not self.is_minimization and sorted_inflations[0] > best_universe_inflation:
-                best_universe = np.copy(sorted_universes[0])
+            if sorted_inflations[0] < best_universe_inflation \
+                if self.is_minimization \
+                    else sorted_inflations[0] > best_universe_inflation:
+
+                best_universe = deepcopy(sorted_universes[0])
                 best_universe_inflation = sorted_inflations[0]
 
             normilized_sorted_inflations = np.copy(
@@ -96,17 +105,16 @@ class MVO_optimizer:
                     if random() < normilized_sorted_inflations[i]:
                         white_hole_index = self.__roulette_wheel_selection(
                             normilized_sorted_inflations)
-                        universes[black_hole_index, j] \
-                            = sorted_universes[white_hole_index][j]
 
+                        sorted_universes[white_hole_index].send(
+                            universes[black_hole_index], j)
                     # Exploitation
                     if random() < WEP:
                         rand = ((self.upper_bound[j] -
                                  self.lower_bound[j]) * random()
                                 + self.lower_bound[j]) * TDR
-                        if random() < 0.5:
-                            universes[i, j] = best_universe[j] + rand
-                        else:
-                            universes[i, j] = best_universe[j] - rand
+                        best_universe.send(universes[i], j,
+                                           delta=rand *
+                                           (1 if random() < 0.5 else -1))
 
-        return best_universe.tolist(), float(best_universe_inflation)
+        return best_universe.get_array().tolist(), float(best_universe_inflation)
