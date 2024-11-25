@@ -11,17 +11,21 @@ def main():
     # ), key=lambda x: int(x[0][1:]))]
 
     functions = [benchmarks.TCSD]
+    is_minimization = True
+
+    functions = [benchmarks.AJM]
+    is_minimization = False
 
     num_of_runs = 10
-    max_time = 50000
+    max_time = 10000
     N = 100
-    is_minimization = True
+    print(f"{num_of_runs=}\t{max_time=}\t{N=}")
 
     for func in functions:
         function_name, lb, up, dim = benchmarks.getFunctionDetails(
             func.__name__)
 
-        print(f"{function_name=}\n{num_of_runs=}\t{max_time=}\t{N=}")
+        print(f"{function_name=}")
 
         start_time = time()
 
