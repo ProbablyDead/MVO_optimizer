@@ -55,7 +55,7 @@ class MVO_optimizer:
 
         time = 1
 
-        rng = range(self.max_time)
+        rng = range(self.max_time + 1)
 
         if self.visualization:
             import tqdm
