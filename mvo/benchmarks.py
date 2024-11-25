@@ -19,7 +19,6 @@ def Ufun(x, a, k, m):
 def TCSD(x):
     d_w, D, n = x
 
-    # Objective function
     f_X = (n + 2) * D * d_w**2
 
     g1 = 1 - (D**3*n)/(71785*d_w**4)
@@ -366,7 +365,8 @@ def F23(L):
 def getFunctionDetails(a):
     # [name, lb, ub, dim]
     param = {
-        "TCSD": ["Tension/compression spring design problem", [0.05, 0.25, 2.], [2., 1.3, 15.], 3],
+        "TCSD": ["Tension/compression spring design problem",
+                 [0.05, 0.25, 2.], [2., 1.3, 15.], 3],
         "AJM": ["Optimization of Abrasive Jet machining process parameters",
                 [0.0000167, 0.005, 15000], [0.0005, 0.075, 400000], 3],
         "F1": ["F1", -100, 100, 30],
