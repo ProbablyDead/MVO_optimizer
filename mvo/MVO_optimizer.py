@@ -47,11 +47,11 @@ class MVO_optimizer:
         return min(idx, self.N-1)
 
     def optimize(self):
+        multiverse = [Universe() for _ in range(self.N)]
+
         best_universe = Universe.create_empty_universe()
         best_universe_inflation = \
             float("inf") if self.is_minimization else -float("inf")
-
-        universes = [Universe() for _ in range(self.N)]
 
         time = 1
 
@@ -66,12 +66,13 @@ class MVO_optimizer:
             TDR = Universe.get_TDR(time)
 
             inflations = np.array([universe.get_inflation_rate()
-                                   for universe in universes])
+                                   for universe in multiverse])
 
             sorted_indices = np.argsort(inflations)
             if not self.is_minimization:
                 sorted_indices = sorted_indices[::-1]
-            sorted_universes = [deepcopy(universes[i]) for i in sorted_indices]
+            sorted_universes = [deepcopy(multiverse[i])
+                                for i in sorted_indices]
             sorted_inflations = np.copy(inflations[sorted_indices])
 
             if sorted_inflations[0] < best_universe_inflation \
@@ -93,11 +94,11 @@ class MVO_optimizer:
                             normilized_sorted_inflations)
 
                         sorted_universes[white_hole_index].send(
-                            universes[black_hole_index], j)
+                            multiverse[black_hole_index], j)
                     # Exploitation
                     if random() < WEP:
                         rand_value = Universe.get_random_value(j) * TDR
-                        best_universe.send(universes[i], j,
+                        best_universe.send(multiverse[i], j,
                                            delta=rand_value *
                                            (1 if random() < 0.5 else -1))
 
