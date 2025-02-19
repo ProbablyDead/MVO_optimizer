@@ -1,5 +1,8 @@
 import math
+import sys
+import inspect
 import numpy
+from .function import Function
 
 inf = float(numpy.finfo(numpy.float64).max)
 
@@ -16,7 +19,7 @@ def Ufun(x, a, k, m):
     return y
 
 
-def TCSD(x):
+def F_TCSD(x):
     d_w, D, n = x
 
     f_X = (n + 2) * D * d_w**2
@@ -29,7 +32,7 @@ def TCSD(x):
     return f_X if g1 <= 0 and g2 <= 0 and g3 <= 0 and g4 <= 0 else inf
 
 
-def AJM(x):
+def F_AJM(x):
     x1, x2, x3 = x
 
     rho_a = 2.48e-6
@@ -47,17 +50,17 @@ def AJM(x):
     return f_X if g >= 0 else -inf
 
 
-def F1(x):
+def F_1(x):
     s = numpy.sum(x ** 2)
     return s
 
 
-def F2(x):
+def F_2(x):
     o = sum(abs(x)) + prod(abs(x))
     return o
 
 
-def F3(x):
+def F_3(x):
     dim = len(x) + 1
     o = 0
     for i in range(1, dim):
@@ -65,12 +68,12 @@ def F3(x):
     return o
 
 
-def F4(x):
+def F_4(x):
     o = max(abs(x))
     return o
 
 
-def F5(x):
+def F_5(x):
     dim = len(x)
     o = numpy.sum(
         100 * (x[1:dim] - (x[0: dim - 1] ** 2)) ** 2 + (x[0: dim - 1] - 1) ** 2
@@ -78,12 +81,12 @@ def F5(x):
     return o
 
 
-def F6(x):
+def F_6(x):
     o = numpy.sum(abs((x + 0.5)) ** 2)
     return o
 
 
-def F7(x):
+def F_7(x):
     dim = len(x)
 
     w = [i for i in range(len(x))]
@@ -93,18 +96,18 @@ def F7(x):
     return o
 
 
-def F8(x):
+def F_8(x):
     o = sum(-x * (numpy.sin(numpy.sqrt(abs(x)))))
     return o
 
 
-def F9(x):
+def F_9(x):
     dim = len(x)
     o = numpy.sum(x ** 2 - 10 * numpy.cos(2 * math.pi * x)) + 10 * dim
     return o
 
 
-def F10(x):
+def F_10(x):
     dim = len(x)
     o = (
         -20 * numpy.exp(-0.2 * numpy.sqrt(numpy.sum(x ** 2) / dim))
@@ -115,14 +118,14 @@ def F10(x):
     return o
 
 
-def F11(x):
+def F_11(x):
     w = [i for i in range(len(x))]
     w = [i + 1 for i in w]
     o = numpy.sum(x ** 2) / 4000 - prod(numpy.cos(x / numpy.sqrt(w))) + 1
     return o
 
 
-def F12(x):
+def F_12(x):
     dim = len(x)
     o = (math.pi / dim) * (
         10 * ((numpy.sin(math.pi * (1 + (x[0] + 1) / 4))) ** 2)
@@ -135,7 +138,7 @@ def F12(x):
     return o
 
 
-def F13(x):
+def F_13(x):
     if x.ndim == 1:
         x = x.reshape(1, -1)
 
@@ -151,7 +154,7 @@ def F13(x):
     return o
 
 
-def F14(x):
+def F_14(x):
     aS = [
         [
             -32, -16, 0, 16, 32,
@@ -181,7 +184,7 @@ def F14(x):
     return o
 
 
-def F15(L):
+def F_15(L):
     aK = [
         0.1957, 0.1947, 0.1735, 0.16, 0.0844, 0.0627,
         0.0456, 0.0342, 0.0323, 0.0235, 0.0246,
@@ -197,7 +200,7 @@ def F15(L):
     return fit
 
 
-def F16(L):
+def F_16(L):
     o = (
         4 * (L[0] ** 2)
         - 2.1 * (L[0] ** 4)
@@ -209,7 +212,7 @@ def F16(L):
     return o
 
 
-def F17(L):
+def F_17(L):
     o = (
         (L[1] - (L[0] ** 2) * 5.1 / (4 * (numpy.pi ** 2)) + 5 / numpy.pi * L[0] - 6)
         ** 2
@@ -219,7 +222,7 @@ def F17(L):
     return o
 
 
-def F18(L):
+def F_18(L):
     o = (
         1
         + (L[0] + L[1] + 1) ** 2
@@ -247,7 +250,7 @@ def F18(L):
 
 
 # map the inputs to the function blocks
-def F19(L):
+def F_19(L):
     aH = [[3, 10, 30], [0.1, 10, 35], [3, 10, 30], [0.1, 10, 35]]
     aH = numpy.asarray(aH)
     cH = [1, 1.2, 3, 3.2]
@@ -266,7 +269,7 @@ def F19(L):
     return o
 
 
-def F20(L):
+def F_20(L):
     aH = [
         [10, 3, 17, 3.5, 1.7, 8],
         [0.05, 10, 17, 0.1, 8, 14],
@@ -290,7 +293,7 @@ def F20(L):
     return o
 
 
-def F21(L):
+def F_21(L):
     aSH = [
         [4, 4, 4, 4],
         [1, 1, 1, 1],
@@ -314,7 +317,7 @@ def F21(L):
     return o
 
 
-def F22(L):
+def F_22(L):
     aSH = [
         [4, 4, 4, 4],
         [1, 1, 1, 1],
@@ -338,7 +341,7 @@ def F22(L):
     return o
 
 
-def F23(L):
+def F_23(L):
     aSH = [
         [4, 4, 4, 4],
         [1, 1, 1, 1],
@@ -365,32 +368,39 @@ def F23(L):
 def getFunctionDetails(a):
     # [name, lb, ub, dim]
     param = {
-        "TCSD": ["Tension/compression spring design problem",
-                 [0.05, 0.25, 2.], [2., 1.3, 15.], 3],
-        "AJM": ["Optimization of Abrasive Jet machining process parameters",
-                [0.0000167, 0.005, 15000], [0.0005, 0.075, 400000], 3],
-        "F1": ["F1", -100, 100, 30],
-        "F2": ["F2", -10, 10, 30],
-        "F3": ["F3", -100, 100, 30],
-        "F4": ["F4", -100, 100, 30],
-        "F5": ["F5", -30, 30, 30],
-        "F6": ["F6", -100, 100, 30],
-        "F7": ["F7", -1.28, 1.28, 30],
-        "F8": ["F8", -500, 500, 30],
-        "F9": ["F9", -5.12, 5.12, 30],
-        "F10": ["F10", -32, 32, 30],
-        "F11": ["F11", -600, 600, 30],
-        "F12": ["F12", -50, 50, 30],
-        "F13": ["F13", -50, 50, 30],
-        "F14": ["F14", -65.536, 65.536, 2],
-        "F15": ["F15", -5, 5, 4],
-        "F16": ["F16", -5, 5, 2],
-        "F17": ["F17", -5, 15, 2],
-        "F18": ["F18", -2, 2, 2],
-        "F19": ["F19", 0, 1, 3],
-        "F20": ["F20", 0, 1, 6],
-        "F21": ["F21", 0, 10, 4],
-        "F22": ["F22", 0, 10, 4],
-        "F23": ["F23", 0, 10, 4],
+        F_TCSD: ["Tension/compression spring design problem", 3,
+                 [0.05, 0.25, 2.], [2., 1.3, 15.], r"$E = mc^2$"],
+        F_AJM: ["Optimization of Abrasive Jet machining process parameters", 3,
+                [0.0000167, 0.005, 15000], [0.0005, 0.075, 400000], r"$E = mc^2$"],
+        F_1: ["F_1", 30, -100, 100, r"$E = mc^2$"],
+        F_2: ["F_2", 30, -10, 10, r"$E = mc^2$"],
+        F_3: ["F_3", 30, -100, 100, r"$E = mc^2$"],
+        F_4: ["F_4", 30, -100, 100, r"$E = mc^2$"],
+        F_5: ["F_5", 30, -30, 30, r"$E = mc^2$"],
+        F_6: ["F_6", 30, -100, 100, r"$E = mc^2$"],
+        F_7: ["F_7", 30, -1.28, 1.28, r"$E = mc^2$"],
+        F_8: ["F_8", 30, -500, 500, r"$E = mc^2$"],
+        F_9: ["F_9", 30, -5.12, 5.12, r"$E = mc^2$"],
+        F_10: ["F_10", 30, -32, 32, r"$E = mc^2$"],
+        F_11: ["F_11", 30, -600, 600, r"$E = mc^2$"],
+        F_12: ["F_12", 30, -50, 50, r"$E = mc^2$"],
+        F_13: ["F_13", 30, -50, 50, r"$E = mc^2$"],
+        F_14: ["F_14", 2, -65.536, 65.536, r"$E = mc^2$"],
+        F_15: ["F_15", 4, -5, 5, r"$E = mc^2$"],
+        F_16: ["F_16", 2, -5, 5, r"$E = mc^2$"],
+        F_17: ["F_17", 2, -5, 15, r"$E = mc^2$"],
+        F_18: ["F_18", 2, -2, 2, r"$E = mc^2$"],
+        F_19: ["F_19", 3, 0, 1, r"$E = mc^2$"],
+        F_20: ["F_20", 6, 0, 1, r"$E = mc^2$"],
+        F_21: ["F_21", 4, 0, 10, r"$E = mc^2$"],
+        F_22: ["F_22", 4, 0, 10, r"$E = mc^2$"],
+        F_23: ["F_23", 4, 0, 10, r"$E = mc^2$"],
     }
     return param.get(a, "nothing")
+
+
+def get_functions():
+    return [Function(f, *getFunctionDetails(f)) for _, f in inspect.getmembers(
+        sys.modules[__name__],
+        lambda m: hasattr(m, "__name__") and m.__name__.startswith("F_")
+    )]

@@ -2,7 +2,7 @@ from random import random
 import numpy as np
 from sklearn.preprocessing import normalize
 from copy import deepcopy
-from Universe import Universe
+from .Universe import Universe
 
 
 class MVO_optimizer:
@@ -13,10 +13,10 @@ class MVO_optimizer:
                  upper_bound,
                  N=50,
                  max_time=1000,
-                 is_minimization=True,
                  wep_min=0.2,
                  wep_max=1.,
                  p=6,
+                 is_minimization=True,
                  visualization=True
                  ) -> None:
         self.dim = dim
