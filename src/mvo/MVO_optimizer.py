@@ -47,7 +47,7 @@ class MVO_optimizer:
         return min(idx, self.N-1)
 
     def optimize(self):
-        multiverse = [Universe() for _ in range(self.N)]
+        multiverse = [Universe(i) for i in range(self.N)]
 
         best_universe = Universe.create_empty_universe()
         best_universe_inflation = \
@@ -80,7 +80,10 @@ class MVO_optimizer:
                     else sorted_inflations[0] > best_universe_inflation:
 
                 best_universe = deepcopy(sorted_universes[0])
+                best_universe.index = -1
                 best_universe_inflation = sorted_inflations[0]
+
+            yield multiverse + [best_universe]
 
             normilized_sorted_inflations = np.copy(
                 self.__norm(sorted_inflations))
@@ -102,4 +105,5 @@ class MVO_optimizer:
                                            delta=rand_value *
                                            (1 if random() < 0.5 else -1))
 
-        return best_universe.get_array().tolist(), float(best_universe_inflation)
+        yield multiverse + [best_universe]
+        # return best_universe.get_array().tolist(), float(best_universe_inflation)

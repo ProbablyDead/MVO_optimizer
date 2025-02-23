@@ -65,7 +65,7 @@ class Universe:
             lb=0,
         )
 
-        u = Universe()
+        u = Universe(-1)
 
         Universe.set_parameters(
             ub=tmp_ub,
@@ -74,7 +74,7 @@ class Universe:
 
         return u
 
-    def __init__(self):
+    def __init__(self, index):
         assert all(filter(lambda x: x != 0, (
             Universe.__f,
             Universe.__dim,
@@ -89,6 +89,11 @@ class Universe:
         self.__array = np.array([np.random.uniform(
             Universe.__lb[i], Universe.__ub[i])
             for i in range(Universe.__dim)])
+        self.__origins = [index]*Universe.__dim
+        self.index = index
+
+    def get_origins(self):
+        return self.__origins
 
     def get_array(self):
         return self.__array
@@ -101,8 +106,9 @@ class Universe:
         return Universe.__f(self.__array)
 
     def send(self, to, at, delta=0):
-        to.receive(at, self.__array[at] + delta)
+        to.receive(at, self.__array[at] + delta, self)
 
-    def receive(self, at, value):
+    def receive(self, at, value, from_universe):
         self.__array[at] = np.clip(
             value, Universe.__lb[at], Universe.__ub[at])
+        self.__origins[at] = from_universe.index

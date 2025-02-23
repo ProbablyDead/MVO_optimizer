@@ -10,7 +10,7 @@ class Function:
         lower_bounds: float | int | list[float],
         upper_bounds: float | int | list[float],
         is_mininization: bool = True,
-        visualisation: bool = None,
+        visualisation: str = None,
     ):
         self.function = function
         self.function_name = function_name if function_name \

@@ -1,4 +1,4 @@
-from MVO_optimizer import MVO_optimizer
+from .MVO_optimizer import MVO_optimizer
 from functions import benchmarks
 from time import time
 

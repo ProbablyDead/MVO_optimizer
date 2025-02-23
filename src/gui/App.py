@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from ._Selector import _Selector
+from ._Player import _Player
 
 EMPTY_CHOOSE = "Choose function"
 
@@ -45,7 +46,7 @@ class AppMainScreen:
             "N",
             tk.IntVar,
             lower_bound=0,
-            default_value=500,
+            default_value=10,
             is_checkbox=False,
             is_scale=False,
             horizontal=True)
@@ -115,15 +116,7 @@ class AppMainScreen:
             self.__optimize(self.__get_selected_function(func))
 
     def __optimize(self, function):
-        print(
-            self.hyperparameters_widgets["N"].get_value(),
-            self.hyperparameters_widgets["Max iterations"]
-            .get_value(),
-            self.hyperparameters_widgets["WEP_min"].get_value(),
-            self.hyperparameters_widgets["WEP_max"].get_value(),
-            self.hyperparameters_widgets["p"].get_value(),
-        )
-        self.__openNewWindow(self.optimizer(
+        self.__openNewWindow(function.visualisation, self.optimizer(
             function.function,
             function.dim,
             function.lower_bounds,
@@ -134,15 +127,12 @@ class AppMainScreen:
             wep_min=self.hyperparameters_widgets["WEP_min"].get_value(),
             wep_max=self.hyperparameters_widgets["WEP_max"].get_value(),
             p=self.hyperparameters_widgets["p"].get_value(),
-            is_minimization=function.is_mininization
-        ).optimize()[1])
+            is_minimization=function.is_mininization,
+            visualization=True
+        ).optimize())
 
-    def __openNewWindow(self, v):
-        newWindow = tk.Toplevel(self.root)
-        newWindow.title("New Window")
-        newWindow.geometry("200x200")
-        ttk.Label(newWindow,
-                  text=v).pack()
+    def __openNewWindow(self, function_visualization, generator):
+        _Player(self.root, function_visualization, generator)
 
     def start_app(self):
         self.root.mainloop()
