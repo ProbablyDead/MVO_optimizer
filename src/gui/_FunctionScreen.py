@@ -1,6 +1,9 @@
 import tkinter as tk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import ttk
 from ._Selector import _Selector
+from ._Graph import _Graph
 
 
 class _FunctionScreen(tk.Toplevel):
@@ -10,12 +13,29 @@ class _FunctionScreen(tk.Toplevel):
         self.function = function
         self.best_solution = best_solution
 
+        self.latex_frame = tk.Frame(self)
+        self.latex_frame.pack(side='top', fill='x')
+        self._render_latex(function.visualisation)
+
         self._add_graph()
         self._add_selector()
         self._add_reset_params_button()
 
     def _add_graph(self):
-        pass
+        self.graph = _Graph(
+            self,
+        )
+        self.graph.pack()
+
+    def _render_latex(self, latex_str):
+        fig = plt.figure(figsize=(5, 1))
+        fig.text(0.5, 0.5, f"${latex_str}$",
+                 fontsize=14, ha='center', va='center')
+        plt.axis('off')
+        canvas = FigureCanvasTkAgg(fig, master=self.latex_frame)
+        canvas.draw()
+        widget = canvas.get_tk_widget()
+        widget.pack(fill='x')
 
     def _add_selector(self):
         arr = self.best_solution.get_array()
@@ -38,7 +58,8 @@ class _FunctionScreen(tk.Toplevel):
                 default_value=arr[i],
                 is_checkbox=True,
                 horizontal=False,
-                is_checkbox_blocked=self._check_if_two_checkboxes_are_selected
+                is_checkbox_blocked=self._check_if_two_checkboxes_are_selected,
+                on_update_value_callback=self._update_graph
             )
             self.selectors.append(s)
             s.pack(side="left", expand=True)
@@ -61,10 +82,25 @@ class _FunctionScreen(tk.Toplevel):
         if i < 2:
             return False
         elif i == 2:
-            i1, i2 = self._get_selected_indexes()
+            self._update_graph()
             return False
         elif i > 2:
             return True
+
+    def _update_graph(self):
+        idxs = list(self._get_selected_indexes())
+        bounds = [[self.selectors[i].lb, self.selectors[i].ub] for i in idxs]
+
+        self.graph.set_function(
+            self.function.function,
+            self._get_params_values(),
+            idxs,
+            bounds
+        )
+        self.graph.update_plot()
+
+    def _get_params_values(self):
+        return [s.get_value() for s in self.selectors]
 
     def _get_selected_indexes(self) -> (int, int):
         for i, s in enumerate(self.selectors):

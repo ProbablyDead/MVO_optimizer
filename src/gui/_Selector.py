@@ -7,6 +7,7 @@ class _Selector(tk.Frame):
                  master,
                  name,
                  value_type,
+                 on_update_value_callback=None,
                  lower_bound=None,
                  upper_bound=None,
                  default_value=None,
@@ -35,8 +36,15 @@ class _Selector(tk.Frame):
                 self.container, text="", variable=self.var_checkbox,
                 command=self.__check_possibility)
 
+        self.lb = lower_bound
+        self.ub = upper_bound
         self.var = value_type(value=default_value if default_value else
                               (lower_bound+upper_bound)/2)
+
+        if on_update_value_callback:
+            self.var.trace_add(
+                "write", lambda *args: on_update_value_callback())
+
         if self.is_scale:
             self.scale = ttk.Scale(self.container, from_=lower_bound,
                                    to=upper_bound, variable=self.var)

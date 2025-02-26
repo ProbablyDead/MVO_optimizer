@@ -369,32 +369,65 @@ def getFunctionDetails(a):
     # [name, lb, ub, dim]
     param = {
         F_TCSD: ["Tension/compression spring design problem", 3,
-                 [0.05, 0.25, 2.], [2., 1.3, 15.], True, "E = mc^2"],
+                 [0.05, 0.25, 2.], [2., 1.3, 15.], True,
+                 """\\begin{equation}
+                    F_{TCSD}(x) = 
+                    \\begin{cases}
+                        (n + 2) D d_w^2, & \\text{if } g_1 \\leq 0 \\text{ and } g_2 \\leq 0 \\text{ and } g_3 \\leq 0 \\text{ and } g_4 \\leq 0 \\\\
+                        \\infty, & \\text{otherwise}
+                    \\end{cases}
+                    \\end{equation}
+
+                    \\begin{align*}
+                    g_1 &= 1 - \\frac{D^3 n}{71785 d_w^4}, \\\\
+                    g_2 &= \\frac{4D^2 - d_w D}{12566(D d_w^3 - d_w^4)} + \\frac{1}{5108 d_w^2} - 1, \\\\
+                    g_3 &= 1 - \\frac{140.45 d_w}{D^2 n}, \\\\
+                    g_4 &= \\frac{D + d_w}{1.5} - 1.
+                    \\end{align*}"""],
         F_AJM: ["Optimization of Abrasive Jet machining process parameters", 3,
-                [0.0000167, 0.005, 15000], [0.0005, 0.075, 400000], True, "E = mc^2"],
-        F_1: ["F_1", 30, -100, 100, True, "E = mc^2"],
-        F_2: ["F_2", 30, -10, 10, True, "E = mc^2"],
-        F_3: ["F_3", 30, -100, 100, True, "E = mc^2"],
-        F_4: ["F_4", 30, -100, 100, True, "E = mc^2"],
-        F_5: ["F_5", 30, -30, 30, True, "E = mc^2"],
-        F_6: ["F_6", 30, -100, 100, True, "E = mc^2"],
-        F_7: ["F_7", 30, -1.28, 1.28, True, "E = mc^2"],
-        F_8: ["F_8", 30, -500, 500, True, "E = mc^2"],
-        F_9: ["F_9", 30, -5.12, 5.12, True, "E = mc^2"],
-        F_10: ["F_10", 30, -32, 32, True, "E = mc^2"],
-        F_11: ["F_11", 30, -600, 600, True, "E = mc^2"],
-        F_12: ["F_12", 30, -50, 50, True, "E = mc^2"],
-        F_13: ["F_13", 30, -50, 50, True, "E = mc^2"],
-        F_14: ["F_14", 2, -65.536, 65.536, True, "E = mc^2"],
-        F_15: ["F_15", 4, -5, 5, True, "E = mc^2"],
-        F_16: ["F_16", 2, -5, 5, True, "E = mc^2"],
-        F_17: ["F_17", 2, -5, 15, True, "E = mc^2"],
-        F_18: ["F_18", 2, -2, 2, True, "E = mc^2"],
-        F_19: ["F_19", 3, 0, 1, True, "E = mc^2"],
-        F_20: ["F_20", 6, 0, 1, True, "E = mc^2"],
-        F_21: ["F_21", 4, 0, 10, True, "E = mc^2"],
-        F_22: ["F_22", 4, 0, 10, True, "E = mc^2"],
-        F_23: ["F_23", 4, 0, 10, True, "E = mc^2"],
+                [0.0000167, 0.005, 15000], [0.0005, 0.075, 400000], True,
+                """\\begin{equation}
+                F_{AJM}(x) = 
+                \\begin{cases}
+                    1.0436 \\times 10^{-6} \\cdot \\zeta \\cdot \\left(\\frac{\\rho_w}{\\delta_{cw}^2 H_{dw}^{1.5} \\rho_a^{0.5}}\\right) x_1 x_3^3, & \\text{if } g \\geq 0 \\\\
+                    -\\infty, & \\text{otherwise}
+                \\end{cases}
+                \\end{equation}
+
+                \\begin{equation}
+                g = 1 - \\frac{25.82}{R_{a\\max}} \\left(\\frac{\\rho_a}{H_{dw}}\\right)^{0.5} x_2 x_3.
+                \\end{equation}"""],
+        F_1: ["F_1", 20, -100, 100, True, "\\sum_{i=1}^{n} x_i^2"],
+        F_2: ["F_2", 20, -10, 10, True, "\\sum_{i=1}^{n} |x_i| + \\prod_{i=1}^{n} |x_i|"],
+        F_3: ["F_3", 20, -100, 100, True, "\\sum_{i=1}^{n} \\left( \\sum_{j=1}^{i} x_j \\right)^2 "],
+        F_4: ["F_4", 20, -100, 100, True, "\\max_i \\{ |x_i|, 1 \\leq i \\leq n \\}"],
+        F_5: ["F_5", 20, -30, 30, True, "\\sum_{i=1}^{n-1} \\left[ 100 (x_{i+1} - x_i^2)^2 + (x_i - 1)^2 \\right]"],
+        F_6: ["F_6", 20, -100, 100, True, "\\sum_{i=1}^{n} \\left( x_i + 0.5 \\right)^2"],
+        F_7: ["F_7", 20, -1.28, 1.28, True, "\\sum_{i=1}^{n} i x_i^4 + \\text{random}[0,1]"],
+        F_8: ["F_8", 20, -500, 500, True, "\\sum_{i=1}^{n} -x_i \\sin(\\sqrt{|x_i|})"],
+        F_9: ["F_9", 20, -5.12, 5.12, True, "\\sum_{i=1}^{n} \\left[ x_i^2 - 10\\cos(2 \\pi x_i) + 10 \\right]"],
+        F_10: ["F_10", 20, -32, 32, True, "-20 \\exp \\left(-0.2 \\sqrt{\\frac{1}{n} \\sum_{i=1}^{n} x_i^2} \\right) - \\exp \\left( \\frac{1}{n} \\sum_{i=1}^{n} \\cos(2\\pi x_i) \\right) + 20 + e"],
+        F_11: ["F_11", 20, -600, 600, True, "\\frac{1}{4000} \\sum_{i=1}^{n} x_i^2 - \\prod_{i=1}^{n} \\cos \\left( \\frac{x_i}{\\sqrt{i}} \\right) + 1"],
+        F_12: ["F_12", 20, -50, 50, True, """\\frac{\\pi}{n} \\left\\{ 10 \\sin(\\pi y_1) + \\sum_{i=1}^{n-1} (y_i - 1)^2 [1 + 10 \\sin^2(\\pi y_{i+1})] + (y_n - 1)^2 \\right\\} \\\\
+            &\\quad + \\sum_{i=1}^{n} u(x_i, 10, 100, 4)
+            y_i &= 1 + \\frac{x_i + 1}{4}
+            u(x_i, a, k, m) &= \\begin{cases}
+                k(x_i - a)^m & x_i > a
+                0 & -a < x_i < a
+                k(-x_i - a)^m & x_i < -a
+            \\end{cases}"""],
+        F_13: ["F_13", 20, -50, 50, True, """&= 0.1 \\left\\{ \\sin^2(3 \\pi x_1) + \\sum_{i=1}^{n-1} (x_i - 1)^2 [1 + \\sin^2(3 \\pi x_{i+1} + 1)] + (x_n - 1)^2 [1 + \\sin^2(2 \\pi x_n)] \\right\\}
+                &\\quad + \\sum_{i=1}^{n} u(x_i, 5, 100, 4)"""],
+        F_14: ["F_14", 2, -65.536, 65.536, True, "\\text{Sphere function}"],
+        F_15: ["F_15", 4, -5, 5, True, "\\text{Griewank's function}"],
+        F_16: ["F_16", 2, -5, 5, True, "\\text{Griewank's function}"],
+        F_17: ["F_17", 2, -5, 15, True, "\\text{Ackley's function}, \\text{Rastrigin's function}, \\text{Weierstrass function}, \\text{Griewank's function}, \\text{Sphere function}"],
+        F_18: ["F_18", 2, -2, 2, True, "\\text{Rastrigin's function}, \\text{Weierstrass function}, \\text{Griewank's function}, \\text{Ackley's function}, \\text{Sphere function}"],
+        F_19: ["F_19", 3, 0, 1, True, "\\text{Rastrigin's function}, \\text{Weierstrass function}, \\text{Griewank's function}, \\text{Ackley's function}, \\text{Sphere function}"],
+        F_20: ["F_20", 6, 0, 1, True, "F_{20}(\\mathbf{L}) = -\\sum_{i=1}^{4} cH_i \\cdot \\exp \\left( -\\sum_{j=1}^{6} aH_{ij} \\cdot (L_j - pH_{ij})^2 \\right)"],
+        F_21: ["F_21", 4, 0, 10, True, "\\sum_{i=1}^{5} -\\left( (L - aSH_i)(L - aSH_i)^T + cSH_i \\right)^{-1}"],
+        F_22: ["F_22", 4, 0, 10, True, "\\sum_{i=1}^{7} -\\left( (L - aSH_i)(L - aSH_i)^T + cSH_i \\right)^{-1}"],
+        F_23: ["F_23", 4, 0, 10, True, "\\sum_{i=1}^{10} -\\left( (L - aSH_i)(L - aSH_i)^T + cSH_i \\right)^{-1}"],
     }
     return param.get(a, "nothing")
 
