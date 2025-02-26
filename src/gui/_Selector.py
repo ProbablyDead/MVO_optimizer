@@ -13,6 +13,7 @@ class _Selector(tk.Frame):
                  horizontal=False,
                  is_checkbox=True,
                  is_scale=True,
+                 is_checkbox_blocked=None,
                  **kwargs):
         super().__init__(master, **kwargs)
 
@@ -24,13 +25,15 @@ class _Selector(tk.Frame):
 
         self.container = tk.Frame(self)
         self.container.pack()
+        self.is_checkbox_blocked = is_checkbox_blocked
 
         self.label = tk.Label(self.container, text=name, anchor="center")
 
         if self.is_checkbox:
-            self.var_checkbox = tk.BooleanVar()
+            self.var_checkbox = tk.BooleanVar(value=False)
             self.checkbox = tk.Checkbutton(
-                self.container, text="", variable=self.var_checkbox)
+                self.container, text="", variable=self.var_checkbox,
+                command=self.__check_possibility)
 
         self.var = value_type(value=default_value if default_value else
                               (lower_bound+upper_bound)/2)
@@ -77,6 +80,24 @@ class _Selector(tk.Frame):
                 self.scale.config(orient="vertical")
                 self.scale.pack(pady=2)
             self.entry.pack(pady=2)
+
+    def __check_possibility(self):
+        if self.var_checkbox.get():
+            v = not self.is_checkbox_blocked()
+            self.var_checkbox.set(v)
+            if v:
+                self.scale.config(state="disabled")
+                self.entry.config(state="disabled")
+        else:
+            self.var_checkbox.set(False)
+            self.scale.config(state="normal")
+            self.entry.config(state="normal")
+
+    def set_value(self, value):
+        self.var.set(value)
+
+    def is_selected(self):
+        return self.var_checkbox.get()
 
     def get_value(self):
         return self.var.get()

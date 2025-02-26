@@ -1,14 +1,14 @@
 import tkinter as tk
 import matplotlib.pyplot as plt
-from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from ._Visualizer import _Visualizer
 
 
 class _Player(tk.Toplevel):
-    def __init__(self, master, latex_func, generator):
+    def __init__(self, master, latex_func, generator, callback):
         super().__init__(master)
         self.generator = generator
+        self.callback = callback
         self.minsize(800, 600)
         self.title("Visualization Player")
 
@@ -34,6 +34,8 @@ class _Player(tk.Toplevel):
             self.button_frame, text='Continue ▶', command=self._on_continue)
         self.cont_btn.pack(side='left', padx=5, pady=5)
 
+        self.multiverse = None
+
         self.attributes('-fullscreen', True)
 
         self._next_step()
@@ -50,30 +52,25 @@ class _Player(tk.Toplevel):
 
     def _next_step(self):
         try:
-            self.visualization.draw_grid(next(self.generator))
+            self.multiverse = next(self.generator)
+            self.visualization.draw_grid(self.multiverse)
         except StopIteration:
-            self.next_btn.config(state='disabled')
-            self.cont_btn.config(state='disabled')
-            tk.messagebox.showinfo("End", "No more steps to display.")
+            self._open_function_window()
 
     def _on_stop(self):
-        stop_win = tk.Toplevel(self)
-        stop_win.title("Stopped")
-        tk.Label(stop_win, text="Visualization stopped.").pack(
-            padx=20, pady=20)
+        self._open_function_window()
 
     def _on_continue(self):
-        def skip_steps():
-            try:
-                while True:
-                    next(self.generator)
-            except StopIteration:
-                self.after(0, self._open_continue_window)
-        self.after(0, skip_steps)
+        try:
+            while True:
+                self.multiverse = next(self.generator)
+                self.visualization.draw_grid(self.multiverse)
+        except StopIteration:
+            self._open_function_window()
 
-    def _open_continue_window(self):
-        cont_win = tk.Toplevel(self)
-        cont_win.title("Continued")
-        tk.Label(cont_win, text="All remaining steps skipped.").pack(
-            padx=20, pady=20)
-        self.destroy()
+    def _open_function_window(self):
+        self.next_btn.config(state='disabled')
+        self.cont_btn.config(state='disabled')
+        tk.messagebox.showinfo("End", "No more steps to display.")
+
+        self.callback(self.multiverse[-1])

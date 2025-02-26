@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from ._Selector import _Selector
 from ._Player import _Player
+from ._FunctionScreen import _FunctionScreen
 
 EMPTY_CHOOSE = "Choose function"
 
@@ -116,7 +117,7 @@ class AppMainScreen:
             self.__optimize(self.__get_selected_function(func))
 
     def __optimize(self, function):
-        self.__openNewWindow(function.visualisation, self.optimizer(
+        self.__openNewWindow(function, self.optimizer(
             function.function,
             function.dim,
             function.lower_bounds,
@@ -128,11 +129,19 @@ class AppMainScreen:
             wep_max=self.hyperparameters_widgets["WEP_max"].get_value(),
             p=self.hyperparameters_widgets["p"].get_value(),
             is_minimization=function.is_mininization,
-            visualization=True
+            visualization=False
         ).optimize())
 
-    def __openNewWindow(self, function_visualization, generator):
-        _Player(self.root, function_visualization, generator)
+    def __openNewWindow(self, function, generator):
+        _Player(
+            self.root,
+            function.visualisation,
+            generator,
+            lambda best_universe: self.__callback(function, best_universe)
+        )
+
+    def __callback(self, function, best_universe):
+        _FunctionScreen(self.root, function, best_universe)
 
     def start_app(self):
         self.root.mainloop()
